@@ -1,0 +1,40 @@
+#include "swap.h"
+#define BUFFER 64
+#define Psize 128 //PageSize
+
+
+Swap::Swap()       // Initialize 
+{
+	swapFilesMap = new BitMap(BUFFER);
+	SwapFile=open("swap.txt",O_RDWR|O_CREAT|O_EXCL,00600);
+}
+
+Swap::~Swap()      // De-allocate
+{
+	delete swapFilesMap;
+	close(SwapFile);
+	
+}
+
+int Swap::Allocate(char* buffer)      // allocate
+{
+//		if (SwapFile=0)//
+	int SwaPage = swapFilesMap->Find();
+	int offset = SwaPage*Psize;
+        lseek(SwapFile, offset, SEEK_SET);
+	write(SwapFile, buffer, Psize);
+        return SwaPage;	
+}
+
+
+void Swap::Unallocate(int page, char* buffer)      // Unallocate
+{
+		int leer;
+		int offset = page*Psize;
+		lseek(SwapFile, offset, SEEK_SET);
+		leer = read(SwapFile, buffer, Psize);
+		//buffer[Psize]=0;
+		swapFilesMap->Clear(page);
+}
+
+
